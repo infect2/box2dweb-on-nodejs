@@ -1,4 +1,4 @@
-CSS transform demonstration empowered by physics engine
+box2dweb on nodejs
 =======================================================
 
 This project combines three open source projects to demonstrate CSS transform based image wall together with physics engine which runs on node.js.
