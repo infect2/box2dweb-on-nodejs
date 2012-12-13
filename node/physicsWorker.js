@@ -11,7 +11,6 @@ var   b2Vec2 = Box2D.Common.Math.b2Vec2
  , b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
  , b2DebugDraw = Box2D.Dynamics.b2DebugDraw;
 
- var responseQueue = [];
 var SCALE = 30;
 
 function bTest(intervalRate, adaptive, width, height) {
@@ -95,7 +94,7 @@ var box,
 
 function postMessage ( world ) {
   if( typeof connection === "undefined" ) {
-    console.log( "Web Socket is Yet-to-be-prepared");
+    console.log( "Web Socket: Yet-to-be-prepared");
     return;
   }
   var json = JSON.stringify( world );

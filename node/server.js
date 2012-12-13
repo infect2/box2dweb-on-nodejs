@@ -1,20 +1,23 @@
+//module loading
 var http = require("http"),
 	sockjs = require("sockjs"),
 	pWorker = require("./physicsWorker.js");
-
+//server configuration
 var	httpServer,
 	httpServerPort = 8888,
 	workerURL,
 	sockConnection;
+//physics engine configuration
+var canvasWidth,
+	canvasHeight,
+	timeStep;
 
 var sockjs_opts = {sockjs_url: "http://cdn.sockjs.org/sockjs-0.3.min.js"};
 var sockjs_echo = sockjs.createServer( sockjs_opts );
 sockjs_echo.on( 'connection', function( conn ) {
 	sockConnection = conn;
 	pWorker.setConnection( conn );
-	conn.on( 'data', function(message){
-		conn.write(message);
-	});
+	pWorker.workerInitialize( canvasWidth, canvasHeight, timeStep );
 });
 
 function onRequest(request, response) {
@@ -25,7 +28,11 @@ function onRequest(request, response) {
 		data = JSON.parse( url.slice( start, end ) );
 	console.log( data );
 	if( data["command"] === "startWorker" ) {
-		pWorker.workerInitialize( data["canvasWidth"], data["canvasHeight"], data["timeStep"] );
+		// pWorker.workerInitialize( data["canvasWidth"], data["canvasHeight"], data["timeStep"] );
+		//wait to actually workerInitialize until sockjs connection is established
+		canvasWidth = data["canvasWidth"];
+		canvasHeight = data["canvasHeight"];
+		timeStep = data["timeStep"];
 	} else if( data["command"] === "createWorker" ) {
 		workerURL = data["url"];
 		// pWorker = require( workerURL );
