@@ -42,6 +42,7 @@ function onRequest(request, response) {
 		ret = pWorker.setEntities( data );
 		if( !ret ) {//one more try
 			setTimeout( function() {
+				console.log("retry:setEntities");
 				ret = pWorker.setEntities( data );
 				if( !ret ) {
 					sockConnection.end();

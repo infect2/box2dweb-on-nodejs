@@ -106,7 +106,7 @@ exports.setConnection = function( conn ){
 };
 
 exports.workerInitialize = function( width, height, ts ) {
-  console.log( "workerInitialize" );
+  console.log( "workerInitialize:" + width + height + ts );
   timeStep = ts;
   box = new bTest(30, false, width, height);
   loop = function() {
@@ -117,6 +117,7 @@ exports.workerInitialize = function( width, height, ts ) {
 
 exports.setEntities = function ( data ){
   if( typeof box === "undefined" ) {
+    console.log("setEntities fails")
     return false;
   }
   box.setBodies(data);
@@ -125,4 +126,7 @@ exports.setEntities = function ( data ){
 
 exports.workerTerminate = function(){
   clearInterval( timerId );
+  delete box;
+  box = undefined;
+  connection = undefined;
 };

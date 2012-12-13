@@ -97,11 +97,12 @@ function createWorker() {
 
   worker.postMessage( world );
 
-  worker.onmessage = function(e) {
+  worker.onmessage = function( e ) {
     firstUpdated = true;
-    for (var id in e.data) {
+    var obj = JSON.parse( e.data );
+    for ( var id in obj ) {
       var entity = world[id];
-      if (entity) entity.update(e.data[id]);
+      if (entity) entity.update(obj[id]);
     }
   };
 }
