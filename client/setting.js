@@ -17,6 +17,10 @@ var canvasConfig = { //benchmarking configuration
     benchmarkingUnderway: false,
     runAnimation: null,
     stopAnimation: null
+  },
+  serverConfig = {
+    nodeServer: "http://localhost:8888",
+    sockJSPrefix: "world"
   };
 
 //setting canvas to window after excluding canvasInnerMargin if any

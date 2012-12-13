@@ -8,6 +8,9 @@ function Entity(id, x, y) {
 }
 
 Entity.prototype.update = function(state) {
+  if( typeof state.x === "undefined" ) {
+    return;
+  }
   this.x = state.x;
   this.y = state.y;
   this.angle = state.a;

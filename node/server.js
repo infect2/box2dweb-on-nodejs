@@ -1,12 +1,27 @@
-var http = require("http");
-var pWorker = require("./physicsWorker.js");
-var workerURL;
+var http = require("http"),
+	sockjs = require("sockjs"),
+	pWorker = require("./physicsWorker.js");
 
+var	httpServer,
+	httpServerPort = 8888,
+	workerURL,
+	sockConnection;
+
+var sockjs_opts = {sockjs_url: "http://cdn.sockjs.org/sockjs-0.3.min.js"};
+var sockjs_echo = sockjs.createServer( sockjs_opts );
+sockjs_echo.on( 'connection', function( conn ) {
+	sockConnection = conn;
+	pWorker.setConnection( conn );
+	conn.on( 'data', function(message){
+		conn.write(message);
+	});
+});
 
 function onRequest(request, response) {
-	var url = decodeURI( request.url ),
-		start = url.indexOf("?") + 1,
-		end = url.indexOf("&callback"),
+	var ret,
+		url = decodeURI( request.url ),
+		start = url.indexOf( "?" ) + 1,
+		end = url.indexOf( "&callback" ),
 		data = JSON.parse( url.slice( start, end ) );
 	console.log( data );
 	if( data["command"] === "startWorker" ) {
@@ -14,16 +29,25 @@ function onRequest(request, response) {
 	} else if( data["command"] === "createWorker" ) {
 		workerURL = data["url"];
 		// pWorker = require( workerURL );
-	} else if( data["command"] === "stopImmediately" )
-	{
+	} else if( data["command"] === "stopImmediately" ) {
 		pWorker.workerTerminate();
 	} else {
-		pWorker.setEntities( data );
+		ret = pWorker.setEntities( data );
+		if( !ret ) {//one more try
+			setTimeout( function() {
+				ret = pWorker.setEntities( data );
+				if( !ret ) {
+					sockConnection.end();
+					process.exit(1);
+				}
+			}, 1000 );
+		}
 	}
 
 	response.writeHead(200, {"Content-Type": "application/javascript"});
-	response.write('remoteWorkerJSONPCallback( { msg: "good"} )');
+	response.write('remoteWorkerJSONPCallback( { msg: "node operation ok"} )');
 	response.end();
 }
 
-http.createServer(onRequest).listen(8888);
+httpServer = http.createServer(onRequest).listen( httpServerPort );
+sockjs_echo.installHandlers( httpServer, { prefix:'/world' } );

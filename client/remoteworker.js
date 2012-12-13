@@ -1,11 +1,7 @@
 ;
 var remoteworker = (function(global){
-    function extend(dest, src){
-        for (var i in src) {
-            dest[i] = src[i];
-        }
-    }
     var serverURL ="http://localhost:8888";
+
     function sendViaAJAX(url){
         $.ajax( {
             type : "post",
@@ -16,33 +12,32 @@ var remoteworker = (function(global){
                 console.log("$.ajax success cb");
             },
             error : function(jqXHR, textStatus, errorThrown){
-                if (jqXHR.status == "200" ) {
-                } else if(jqXHR.status == "401") {
-                    alert("error 401: Unauthorized");
-                } else if(jqXHR.status == "403") {
-                    alert("error 403: Forbidden");
-                } else if (jqXHR.status == "404") {
-                    alert("error 404: Not Found");
-                } else if (jqXHR.status == "412") {
-                    alert("error 412: Precondition Failed ");
-                } else if (jqXHR.status == "500") {
-                    alert("error 500: Internal Server Error");
-                } else {
-                    alert("error " + jqXHR.status ); 
-                }
+                console.log( "AJAX error:" + jqXHR.status );
             }
         } );            
     }
    
-    function RemoteMessageEvent(worker){
-    }
-    RemoteMessageEvent.prototype = {
-    };
- 
     var nativeWorker = global["Worker"];
     var RemoteWorker = function(url){
+        var that = this;
         var request = serverURL + "/remoteWorker?" + JSON.stringify( { command: "createWorker", url: "physicsWorker.js" } );
-        
+        //create WebSocket for full duplex-communcation with server running box2dweb    
+        this.sock = new SockJS( serverConfig.nodeServer + "/" + serverConfig.sockJSPrefix );
+        this.sock.onopen = function() {
+            console.log( "open" );
+        };
+        this.sock.onmessage = function( e ){
+            if( typeof that.onmessage !== "undefined" ) {
+                that.onmessage( e );
+            } else {
+                console.log("no route to redirect onmessage")
+            }
+        };
+        this.sock.onclose = function() {
+            console.log("close");
+            this.sock = null;
+        };
+    
         sendViaAJAX(request);
     };
     RemoteWorker.prototype = {
@@ -53,6 +48,7 @@ var remoteworker = (function(global){
             sendViaAJAX( request );
         },
         terminate: function(){
+            this.sock.close();
         }
     };
     
@@ -60,9 +56,9 @@ var remoteworker = (function(global){
         nativeWorker: nativeWorker,
         install: function(){
             global["Worker"] = RemoteWorker;
-            global["remoteWorkerJSONPCallback"] = function( msg ) {
-                console.log( "remoteWorkerJSONPCallback" );
-            }
+            global["remoteWorkerJSONPCallback"] = function(){
+                console.log("remoteWorkerJSONPCallback");
+            };
         },
         uninstall: function(){
             global["Worker"] = nativeWorker;

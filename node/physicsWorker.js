@@ -90,14 +90,21 @@ bTest.prototype.setBodies = function(bodyEntities) {
 var box,
   loop,
   timerId,
-  timeStep;
+  timeStep,
+  connection;
 
 function postMessage ( world ) {
-  console.log( "postMessage" );
-  console.log( world );
+  if( typeof connection === "undefined" ) {
+    console.log( "Web Socket is Yet-to-be-prepared");
+    return;
+  }
+  var json = JSON.stringify( world );
+  connection.write( json )
 }
 
-exports.responseQueue = responseQueue;
+exports.setConnection = function( conn ){
+  connection = conn;
+};
 
 exports.workerInitialize = function( width, height, ts ) {
   console.log( "workerInitialize" );
@@ -107,12 +114,16 @@ exports.workerInitialize = function( width, height, ts ) {
       if (box.ready) box.update();
   }
   timerId = setInterval(loop, timeStep);
-}
+};
 
 exports.setEntities = function ( data ){
-  box.setBodies(data);  
-}
+  if( typeof box === "undefined" ) {
+    return false;
+  }
+  box.setBodies(data);
+  return true;
+};
 
 exports.workerTerminate = function(){
   clearInterval( timerId );
-}
+};

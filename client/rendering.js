@@ -106,6 +106,10 @@ function createWorker() {
   };
 }
 
+// function remoteWorkerJSONPCallback( data ){
+//   worker.onmessage( { e: JSON.parse( data ) } );
+// }
+
 function destroyWorker() {
   worker.terminate();
   delete worker;
